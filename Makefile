@@ -12,10 +12,10 @@ setup:
 	python manage.py createsuperuser
 
 dump:
-	python manage.py dumpdata members -o members/fixtures/members.json
+	python manage.py dumpdata quickstart -o tutorial/apps/quickstart/fixtures/quickstart.json
 
 load:
-	python manage.py loaddata members/fixtures/members.json --app members
+	python manage.py loaddata tutorial/apps/quickstart/fixtures/quickstart.json --app quickstart
 
 serve:
 	python manage.py migrate
