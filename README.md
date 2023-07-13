@@ -1,0 +1,1 @@
+# studies_django_drf_tutorial
