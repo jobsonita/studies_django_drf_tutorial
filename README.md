@@ -421,6 +421,84 @@ class MymodelDetail(generics.RetrieveUpdateDestroyAPIView):
 # urls.py: NO CHANGE
 ```
 
+#### ViewSets and Routers
+
+Unlike `Views` which work with http methods (such as get and put), `ViewSets` provide operations such as `retrieve` and `update` and its methods are only bound when instantiated into sets of views, tipically when a `Router` is handling the url configuration. The code below is a sequence to the [Relationships](#relationships) and [Permissions](#permissions) sections further down, but is presented first due to being related to the Views section.
+
+```python
+from django.contrib.auth.models import User
+from rest_framework import viewsets, permissions
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from . import models
+from . import permissions as myapp_permissions
+from . import serializers
+
+class MymodelViewSet(viewsets.ModelViewSet):
+     """
+    This viewset automatically provides `list`, `create`, `retrieve`,
+    `update` and `destroy` actions.
+
+    Additionally we also provide an extra `show_property` action.
+    """
+    queryset = models.Mymodel.objects.all()
+    serializer_class = serializers.MymodelSerializer
+    [permission_classes] = [
+        permissions.IsAuthenticatedOrReadOnly,
+        myapp_permissions.IsOwnerOrReadOnly]
+
+    @action(detail=True, renderer_classes=[renderers.StaticHTMLRenderer])
+    def show_property(self, request, *args, **kwargs):
+        mymodel = self.get_object()
+        return Response(mymodel.property)
+
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
+
+class UserViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    This viewset automatically provides `list` and `retrieve` actions.
+    """
+    queryset = User.objects.all()
+    serializer_class = serializers.UserSerializer
+
+# urls.py
+from django.urls import path
+from rest_framework import renderers
+from rest_framework.urlpatterns import format_suffix_patterns
+from . import views
+
+mymodel_list = MymodelViewSet.as_view({
+    'get': 'list',
+    'post': 'create'
+})
+mymodel_detail = MymodelViewSet.as_view({
+    'get': 'retrieve',
+    'put': 'update',
+    'patch': 'partial_update',
+    'delete': 'destroy'
+})
+mymodel_highlight = MymodelViewSet.as_view({
+    'get': 'show_property'
+}, renderer_classes=[renderers.StaticHTMLRenderer])
+user_list = UserViewSet.as_view({
+    'get': 'list'
+})
+user_detail = UserViewSet.as_view({
+    'get': 'retrieve'
+})
+
+urlpatterns = [
+    path('mymodels/', mymodel_list, name='mymodel-list'),
+    path('mymodels/<int:pk>/', mymodel_detail, name='mymodel-detail'),
+    path('mymodels/<int:pk>/highlight', mymodel_highlight, name='mymodel-highlight'),
+    path('users/', user_list, name='user-list'),
+    path('users/<int:pk>/', user_detail, name='user-detail'),
+]
+
+urlpatterns = format_suffix_patterns(urlpatterns)
+```
+
 ### Relationships
 
 Example of associating a model to the `auth.User` model (and back through the `related_name` field).
