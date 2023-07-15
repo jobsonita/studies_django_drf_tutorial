@@ -499,6 +499,26 @@ urlpatterns = [
 urlpatterns = format_suffix_patterns(urlpatterns)
 ```
 
+##### Using Routers
+
+When using `ViewSet` classes, we can use a `Router` to handle url configurations automatically. A `DefaultRouter` also provides an API root view.
+
+```python
+from django.urls import include, path
+from rest_framework import routers
+from . import views
+
+# Create a router and register our viewsets with it.
+router = routers.DefaultRouter()
+router.register('mymodels', views.MymodelViewSet)
+router.register('users', views.UserViewSet)
+
+# The API URLs are now determined automatically by the router.
+urlpatterns = [
+    path('', include(router.urls)),
+]
+```
+
 ### Relationships
 
 Example of associating a model to the `auth.User` model (and back through the `related_name` field).
