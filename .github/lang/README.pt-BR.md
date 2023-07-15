@@ -1,19 +1,19 @@
-[Leia este arquivo em Português](./.github/lang/README.pt-BR.md)
+[Read this file in English](../../README.md)
 
 # studies_django_drf_tutorial
 
-Django Rest Framework (DRF) tutorials
+Tutoriais de Django Rest Framework (DRF)
 
 Quickstart: https://www.django-rest-framework.org/tutorial/quickstart/  
 Snippets: https://www.django-rest-framework.org/tutorial/1-serialization/
 
-## Django Rest Framework (DRF) Concepts
+## Conceitos de Django Rest Framework (DRF)
 
-For Django configuration, project installation and other prerequisite knowledge, refer to https://github.com/jobsonita/studies_django_w3tutorial
+Para conhecimentos sobre configuração do Django, instalação do projeto e outros pré-requisitos, consulte https://github.com/jobsonita/studies_django_w3tutorial
 
-### Serializers
+### Serializers (Serializadores)
 
-[Serializers](https://www.django-rest-framework.org/api-guide/serializers/) do the job of presenting our models in the right way to our renderers and validating received data so that it matches our models. It can restrict which fields are shown, and also add more rules to be checked before accepting the received data.
+[Serializadores](https://www.django-rest-framework.org/api-guide/serializers/) trabalham na representação correta dos nossos modelos para a exibição externa, e na validação dos dados recebidos de tal forma que correspondam aos nossos modelos. Eles podem ocultar campos a serem exibidos ou adicionar mais regras a serem checadas antes de aceitar os dados recebidos.
 
 ```python
 # models.py
@@ -38,13 +38,13 @@ class MymodelSerializer(serializers.Serializer):
 
     def create(self, validated_data):
         """
-        Create and return a new `Mymodel` instance, given the validated data.
+        Cria e retorna uma nova instância de `Mymodel` com os dados validados.
         """
         return models.Mymodel.objects.create(**validated_data)
 
     def update(self, instance, validated_data):
         """
-        Update and return an existing `Mymodel` instance, given the validated data.
+        Altera e retorna uma instância existente de `Mymodel` com os dados validados.
         """
         instance.title = validated_data.get('title', instance.title)
         instance.content = validated_data.get('content', instance.content)
@@ -52,9 +52,9 @@ class MymodelSerializer(serializers.Serializer):
         return instance
 ```
 
-#### ModelSerializer
+#### ModelSerializer (Serializador de Modelo)
 
-We can greatly simplify our work by extending from the ModelSerializer which takes the base model and automatically configures serialization and deserialization. Our work is reduced to indicating which fields should be presented by that serializer:
+Podemos simplificar nosso trabalho ao partir de um ModelSerializer que recebe o modelo base e configura automaticamente a serialização e deserialização. Nosso trabalho então se resume a indicar quais campos são abrangidos pelo serializador:
 
 ```python
 # models.py
@@ -78,9 +78,9 @@ class MymodelSerializer(serializers.ModelSerializer):
         fields = ['id', 'title', 'content']
 ```
 
-#### HyperlinkedModelSerializer
+#### HyperlinkedModelSerializer (Serializador de Modelo Hiperligado)
 
-This serializer presents a `url` field instead of an `id` one, allowing for quickly navigating through our models. Relationships should use `HyperlinkedRelatedField` instead of `PrimaryKeyRelatedField`. The code below is based on the [Relationships](#relationships) section further down.
+Este serializador exibe um campo `url` em vez de um `id`, permitindo a navegação rápida entre modelos. Relacionamentos devem usar `HyperlinkedRelatedField` ao invés de `PrimaryKeyRelatedField`. O código abaixo se baseia na seção [Relacionamentos](#relacionamentos) mais adiante.
 
 ```python
 # models.py
@@ -117,13 +117,13 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
         fields = ['url', 'id', 'username', 'mymodels']
 ```
 
-For more in-depth information on serializers, read https://www.django-rest-framework.org/api-guide/serializers/
+Para informações mais aprofundadas sobre serializadores, consulte https://www.django-rest-framework.org/api-guide/serializers/
 
-### Views
+### Views (Visualização, Exibição)
 
-In this tutorial, we see a gradual evolution from regular Django views to DRF ones.
+Neste tutorial, vemos uma evolução gradativa de views comuns do Django para views especializadas do DRF.
 
-#### Regular Django views
+#### Views comuns do Django
 
 ```python
 # views.py
@@ -134,7 +134,7 @@ from . import models, serializers
 
 def mymodel_list(request):
     """
-    List all mymodels, or create a new mymodel.
+    Lista todos os mymodels, ou cria um novo.
     """
     if request.method == 'GET':
         instances = models.Mymodel.objects.all()
@@ -151,7 +151,7 @@ def mymodel_list(request):
 
 def mymodel_detail(request, pk):
     """
-    Retrieve, update or delete a mymodel.
+    Obtém, atualiza ou exclui um mymodel.
     """
     try:
         instance = models.Mymodel.objects.get(pk=pk)
@@ -186,17 +186,17 @@ urlpatterns = [
 
 #### Requests, Responses, status codes, decorators
 
-DRF introduces a `Request` object that extends from regular `HttpRequest` and has a `request.data` attribute with extended functionality over `request.POST`.
+DRF introduz um objeto `Request` (Requisição) que estende o `HttpRequest` comum do Django e que possui o atributo `request.data` com funcionalidades adicionais em comparação com o `request.POST` do Django.
 
-It also introduces a `Response` object, of type `TemplateResponse`, that automatically handles content negotiation for us.
+Ele também introduz um objeto `Response` (Resposta), do tipo `TemplateResponse`, que gerencia a negociação de conteúdo automaticamente.
 
-It also offers a `status` module with user friendly status code literals, such as `HTTP_400_BAD_REQUEST`.
+Ele também oferece um módulo `status` com constantes de fácil leitura, como `HTTP_400_BAD_REQUEST` (Falha na Requisição).
 
-Lastly, it introduces an `@api_view` decorator for function based views and an `APIView` base class for class-based views, which make sure we receive Request objects and return Response objects, and handling `405 Method Not Allowed` and `ParseError` exceptions for us.
+E por último, o DRF introduz um decorador `@api_view` para views baseadas em funções e uma classe base `APIView` para views baseadas em classes, que garantem o recebimento de objetos Request, retorno de objetos Response, e gerenciamento de exceções `405 Method Not Allowed` e `ParseError`.
 
-When we put all above together, we get the next section:
+Quando juntamos os pontos acima mencionados, obtemos a seção a seguir:
 
-#### DRF "regular" views
+#### Views "comuns" do DRF
 
 ```python
 # views.py
@@ -209,7 +209,7 @@ from . import models, serializers
 @api_view(['GET', 'POST'])
 def mymodel_list(request):
     """
-    List all mymodels, or create a new mymodel.
+    Lista todos os mymodels, ou cria um novo.
     """
     if request.method == 'GET':
         instances = models.Mymodel.objects.all()
@@ -226,7 +226,7 @@ def mymodel_list(request):
 @api_view(['GET', 'PUT', 'DELETE'])
 def mymodel_detail(request, pk):
     """
-    Retrieve, update or delete a mymodel.
+    Obtém, atualiza ou exclui um mymodel.
     """
     try:
         instance = models.Mymodel.objects.get(pk=pk)
@@ -248,12 +248,12 @@ def mymodel_detail(request, pk):
         instance.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-# urls.py: NO CHANGE
+# urls.py: SEM ALTERAÇÕES
 ```
 
-#### Accepting format suffix in our URLs
+#### Aceitando sufixos de formato nas nossas URLs
 
-We can allow format suffixes such as the `.json` part in `https://example.com/api/items/4.json` by using the `format_suffix_patterns` function of `rest_framework.urlpatterns` to transform our urlpatterns:
+Podemos permitir sufixos de formato como por exemplo o `.json` em `https://example.com/api/items/4.json` ao usarmos a função `format_suffix_patterns` de `rest_framework.urlpatterns` para transformar nossos urlpatterns:
 
 ```python
 # urls.py
@@ -269,7 +269,7 @@ urlpatterns = [
 urlpatterns = format_suffix_patterns(urlpatterns)
 ```
 
-In that case, we also need to add a `format` argument to our views:
+Nesse caso, precisamos adicionar o argumento `format` às nossas views:
 
 ```python
 
@@ -281,7 +281,7 @@ def mymodel_list(request, format=None):
 def mymodel_detail(request, pk, format=None):
 ```
 
-#### Class-based Views
+#### Views baseadas em Classes
 
 ```python
 # views.py
@@ -294,7 +294,7 @@ from . import models, serializers
 
 class MymodelList(APIView):
     """
-    List all mymodels, or create a new mymodel.
+    Lista todos os mymodels, ou cria um novo.
     """
     def get(self, request, format=None):
         instances = models.Mymodel.objects.all()
@@ -310,7 +310,7 @@ class MymodelList(APIView):
 
 class MymodelDetail(APIView):
     """
-    Retrieve, update or delete a mymodel.
+    Obtém, atualiza ou exclui um mymodel.
     """
     def get_object(self, pk):
         try:
@@ -349,9 +349,9 @@ urlpatterns = [
 urlpatterns = format_suffix_patterns(urlpatterns)
 ```
 
-#### Using Mixins
+#### Usando Mixins
 
-In general, the usual operations (list + CRUD: create, retrieve, update, delete) are pretty similar for any model-backed API views we create. DRF provides mixins that implement those operations for us, so all we need to do is call them on each http method we want to implement:
+Em geral, as operações usuais (list + CRUD: create, retrieve, update, delete) são bastante similares entre quaisquer views relativas a modelos. O DRF oferece mixins que já implementam essas operações, então só precisamos chamá-las nos respectivos métodos http que desejamos implementar:
 
 ```python
 # views.py
@@ -362,7 +362,7 @@ from . import models, serializers
 class MymodelList(
     mixins.ListModelMixin, mixins.CreateModelMixin, generics.GenericAPIView):
     """
-    List all mymodels, or create a new mymodel.
+    Lista todos os mymodels, ou cria um novo.
     """
     queryset = models.Mymodel.objects.all()
     serializer_class = serializers.MymodelSerializer
@@ -379,7 +379,7 @@ class MymodelDetail(
     mixins.DestroyModelMixin,
     generics.GenericAPIView):
     """
-    Retrieve, update or delete a mymodel.
+    Obtém, atualiza ou exclui um mymodel.
     """
     queryset = models.Mymodel.objects.all()
     serializer_class = serializers.MymodelSerializer
@@ -393,12 +393,12 @@ class MymodelDetail(
     def delete(self, request, *args, **kwargs):
         return self.destroy(request, *args, **kwargs)
 
-# urls.py: NO CHANGE
+# urls.py: SEM ALTERAÇÕES
 ```
 
-#### Generic class-based views
+#### Views genéricas baseadas em Classes
 
-DRF provides already mixed-in generic views to reduce our code even more:
+O DRF oferece views genéricas já mescladas para reduzir nosso trabalho ainda mais:
 
 ```python
 # views.py
@@ -408,24 +408,24 @@ from . import models, serializers
 
 class MymodelList(generics.ListCreateAPIView):
     """
-    List all mymodels, or create a new mymodel.
+    Lista todos os mymodels, ou cria um novo.
     """
     queryset = models.Mymodel.objects.all()
     serializer_class = serializers.MymodelSerializer
 
 class MymodelDetail(generics.RetrieveUpdateDestroyAPIView):
     """
-    Retrieve, update or delete a mymodel.
+    Obtém, atualiza ou exclui um mymodel.
     """
     queryset = models.Mymodel.objects.all()
     serializer_class = serializers.MymodelSerializer
 
-# urls.py: NO CHANGE
+# urls.py: SEM ALTERAÇÕES
 ```
 
-#### ViewSets and Routers
+#### ViewSets e Routers
 
-Unlike `Views` which work with http methods (such as get and put), `ViewSets` provide operations such as `retrieve` and `update` and its methods are only bound when instantiated into sets of views, tipically when a `Router` is handling the url configuration. The code below is a sequence to the [Relationships](#relationships) and [Permissions](#permissions) sections further down, but is presented first due to being related to the Views section.
+Diferente das `Views` que trabalham com métodos http (como get e put), `ViewSets` (conjuntos de views) oferecem operações como `retrieve` e `update` e seus métodos só são casados quando instanciados em conjuntos de views, tipicamente quando um `Router` (Roteador) está tratando da configuração da url. O código abaixo é uma sequência das seções [Relacionamentos](#relacionamentos) and [Permissões](#permissoes) mais adiante, mas é apresentado primeiro por ser relacionado à seção de Views.
 
 ```python
 from django.contrib.auth.models import User
@@ -438,10 +438,10 @@ from . import serializers
 
 class MymodelViewSet(viewsets.ModelViewSet):
      """
-    This viewset automatically provides `list`, `create`, `retrieve`,
-    `update` and `destroy` actions.
+    Este conjunto de views exibe ações `list`, `create`, `retrieve`,
+    `update` e `destroy` automáticas.
 
-    Additionally we also provide an extra `show_property` action.
+    Também disponibilizamos a ação adicional `show_property`.
     """
     queryset = models.Mymodel.objects.all()
     serializer_class = serializers.MymodelSerializer
@@ -459,7 +459,7 @@ class MymodelViewSet(viewsets.ModelViewSet):
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
     """
-    This viewset automatically provides `list` and `retrieve` actions.
+    Este conjunto de views exibe ações `list` `retrieve`.
     """
     queryset = User.objects.all()
     serializer_class = serializers.UserSerializer
@@ -501,29 +501,29 @@ urlpatterns = [
 urlpatterns = format_suffix_patterns(urlpatterns)
 ```
 
-##### Using Routers
+##### Usando Roteadores
 
-When using `ViewSet` classes, we can use a `Router` to handle url configurations automatically. A `DefaultRouter` also provides an API root view.
+Quando usamos classes `ViewSet`, podemos usar um `Router` para tratar das configurações de url automaticamente. Um `DefaultRouter` também disponibiliza uma view da raíz da API.
 
 ```python
 from django.urls import include, path
 from rest_framework import routers
 from . import views
 
-# Create a router and register our viewsets with it.
+# Cria um roteador e registra nossos conjuntos de views nele.
 router = routers.DefaultRouter()
 router.register('mymodels', views.MymodelViewSet)
 router.register('users', views.UserViewSet)
 
-# The API URLs are now determined automatically by the router.
+# As URLs da API são determinadas automaticamente pelo roteador.
 urlpatterns = [
     path('', include(router.urls)),
 ]
 ```
 
-### Relationships
+### Relacionamentos
 
-Example of associating a model to the `auth.User` model (and back through the `related_name` field).
+Exemplo de associação ao modelo `auth.User` (e de volta através do campo `related_name`).
 
 ```python
 # models.py
@@ -601,9 +601,9 @@ urlpatterns = [
 urlpatterns = format_suffix_patterns(urlpatterns)
 ```
 
-### Permissions
+### Permissões
 
-We can add a simple access control to our views by setting the `permission_classes` field to a list of permissions matching our access rules and providing endpoints to login/logout into our api. We can also have our own permission classes by extending the `BasePermission` class from `rest_framework.permissions`:
+Podemos adicionar um controle de acesso simplificado às nossas views ao configurar o campo `permission_classes` com uma lista das permissões adequada e oferecer caminhos de login/logout na nossa api. Também podemos estender nossas permissões a partir da classe `BasePermission` de `rest_framework.permissions`:
 
 ```python
 # permissions.py
@@ -611,16 +611,16 @@ from rest_framework import permissions
 
 class IsOwnerOrReadOnly(permissions.BasePermission):
     """
-    Custom permission to only allow owners of an object to edit it.
+    Esta permissão só deixa os donos alterarem seus objetos.
     """
 
     def has_object_permission(self, request, view, obj):
-        # Read permissions are allowed to any request,
-        # so we'll always allow GET, HEAD or OPTIONS requests.
+        # Operações de leitura são todas permitidas,
+        # então sempre permitimos requisições GET, HEAD e OPTIONS.
         if request.method in permissions.SAFE_METHODS:
             return True
 
-        # Write permissions are only allowed to the owner of the object.
+        # Somente os donos têm permissão de escrita.
         return obj.owner == request.user
 
 # views.py
@@ -664,22 +664,22 @@ urlpatterns += [
 ]
 ```
 
-## Common problems
+## Problemas comuns
 
-### DRF generates localhost hyperlinks instead of Codespace ones
+### O DRF gera urls do localhost ao invés de urls do Codespace
 
-When using DRF's DefaultRouter to generate [HATEOAS](https://en.wikipedia.org/wiki/HATEOAS) REST links (navigable API), DRF generates localhost hyperlinks. In order to make it generate urls that match the Codespace url, we need to set the `USE_X_FORWARDED_HOST` flag to `True` in the project's `settings.py`. Also, since it will be considered a forwarded request, we need to configure `ALLOWED_HOSTS` to include the Codespace domain, or make it accept any domain by using the `"*"` wildcard.
+Ao usar o DefaultRouter do DRF para gerar as urls de um REST [HATEOAS](https://en.wikipedia.org/wiki/HATEOAS) (API navegável), o DRF gera urls do localhost. Para que ele gere urls do Codespace, precisamos configuar a constante `USE_X_FORWARDED_HOST` como `True` nas configurações do projeto, `settings.py`. Além disso, como a requisição será considerada como encaminhada, precisamos incluir o domínio do Codespace em `ALLOWED_HOSTS`, ou fazê-lo aceitar qualquer domínio usando o caractere coringa `"*"`.
 
 ```python
 # settings.py
 
-# SECURITY WARNING: don't run with debug turned on in production!
+# AVISO DE SEGURANÇA: em produção, não rode com DEBUG ativado!
 DEBUG = env("DEBUG")
 
 if DEBUG:
     ALLOWED_HOSTS = ["*"]
     USE_X_FORWARDED_HOST = True
 else:
-    # When in production, configure ALLOWED_HOSTS to accept requests forwarded from the domain where your website is hosted
+    # Em produção, configure ALLOWED_HOSTS para aceitar requisições encaminhadas do domínio onde seu projeto está hospedado
     ALLOWED_HOSTS = []
 ```
