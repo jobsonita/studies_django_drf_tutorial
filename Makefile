@@ -13,9 +13,11 @@ setup:
 
 dump:
 	python manage.py dumpdata quickstart -o tutorial/apps/quickstart/fixtures/quickstart.json
+	python manage.py dumpdata snippets -o tutorial/apps/snippets/fixtures/snippets.json
 
 load:
 	python manage.py loaddata tutorial/apps/quickstart/fixtures/quickstart.json --app quickstart
+	python manage.py loaddata tutorial/apps/snippets/fixtures/snippets.json --app snippets
 
 serve:
 	python manage.py migrate

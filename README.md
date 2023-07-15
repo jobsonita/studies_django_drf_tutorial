@@ -5,6 +5,53 @@ Django Rest Framework (DRF) tutorials
 Quickstart: https://www.django-rest-framework.org/tutorial/quickstart/  
 Snippets: https://www.django-rest-framework.org/tutorial/1-serialization/
 
+## Concepts
+
+For Django configuration, project installation and other prerequisite knowledge, refer to https://github.com/jobsonita/studies_django_w3tutorial
+
+### Django Rest Framework (DRF)
+
+#### Serializers
+
+[Serializers](https://www.django-rest-framework.org/api-guide/serializers/) do the job of presenting our models in the right way to our renderers and validating received data so that it matches our models. It can restrict which fields are shown, and also add more rules to be checked before accepting the received data.
+
+```python
+# models.py
+from django.db import models
+
+class Mymodel(models.Model):
+    title = models.CharField(max_length=100, blank=False)
+    content = models.TextField()
+    created = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created']
+
+# serializers.py
+from rest_framework import serializers
+from . import models
+
+class MymodelSerializer(serializers.Serializer):
+    id = serializers.IntegerField(read_only=True)
+    title = serializers.CharField(required=True, allow_blank=False, max_length=100)
+    content = serializers.CharField(style={'base_template': 'textarea.html'})
+
+    def create(self, validated_data):
+        """
+        Create and return a new `Mymodel` instance, given the validated data.
+        """
+        return models.Mymodel.objects.create(**validated_data)
+
+    def update(self, instance, validated_data):
+        """
+        Update and return an existing `Mymodel` instance, given the validated data.
+        """
+        instance.title = validated_data.get('title', instance.title)
+        instance.content = validated_data.get('content', instance.content)
+        instance.save()
+        return instance
+```
+
 ## Common problems
 
 ### DRF generates localhost hyperlinks instead of Codespace ones
