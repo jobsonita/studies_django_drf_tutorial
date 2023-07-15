@@ -158,7 +158,7 @@ Lastly, it introduces an `@api_view` decorator for function based views and an `
 
 When we put all above together, we get the next section:
 
-### DRF "regular" views
+#### DRF "regular" views
 
 ```python
 # views.py
@@ -214,7 +214,7 @@ def mymodel_detail(request, pk):
 # urls.py: NO CHANGE
 ```
 
-### Accepting format suffix in our URLs
+#### Accepting format suffix in our URLs
 
 We can allow format suffixes such as the `.json` part in `https://example.com/api/items/4.json` by using the `format_suffix_patterns` function of `rest_framework.urlpatterns` to transform our urlpatterns:
 
@@ -242,6 +242,75 @@ def mymodel_list(request, format=None):
 
 @api_view(['GET', 'PUT', 'DELETE'])
 def mymodel_detail(request, pk, format=None):
+```
+
+#### Class-based Views
+
+```python
+# views.py
+from django.http import Http404
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from . import models
+from . import serializers
+
+class MymodelList(APIView):
+    """
+    List all mymodels, or create a new mymodel.
+    """
+    def get(self, request, format=None):
+        instances = models.Mymodel.objects.all()
+        serializer = serializers.MymodelSerializer(instances, many=True)
+        return Response(serializer.data)
+
+    def post(self, request, format=None):
+        serializer = serializers.MymodelSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class MymodelDetail(APIView):
+    """
+    Retrieve, update or delete a mymodel.
+    """
+    def get_object(self, pk):
+        try:
+            return models.Mymodel.objects.get(pk=pk)
+        except models.Mymodel.DoesNotExist:
+            raise Http404
+
+    def get(self, request, pk, format=None):
+        instance = self.get_object(pk)
+        serializer = serializers.MymodelSerializer(instance)
+        return Response(serializer.data)
+
+    def put(self, request, pk, format=None):
+        instance = self.get_object(pk)
+        serializer = serializers.MymodelSerializer(instance, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk, format=None):
+        instance = self.get_object(pk)
+        instance.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+# urls.py
+from django.urls import path
+from rest_framework.urlpatterns import format_suffix_patterns
+from . import views
+
+urlpatterns = [
+    path('mymodels/', views.MymodelList.as_view()),
+    path('mymodels/<int:pk>/', views.MymodelDetail.as_view()),
+]
+
+urlpatterns = format_suffix_patterns(urlpatterns)
 ```
 
 ## Common problems
