@@ -50,7 +50,7 @@ class MymodelSerializer(serializers.Serializer):
         return instance
 ```
 
-#### ModelSerializers
+#### ModelSerializer
 
 We can greatly simplify our work by extending from the ModelSerializer which takes the base model and automatically configures serialization and deserialization. Our work is reduced to indicating which fields should be presented by that serializer:
 
@@ -74,6 +74,45 @@ class MymodelSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Mymodel
         fields = ['id', 'title', 'content']
+```
+
+#### HyperlinkedModelSerializer
+
+This serializer presents a `url` field instead of an `id` one, allowing for quickly navigating through our models. Relationships should use `HyperlinkedRelatedField` instead of `PrimaryKeyRelatedField`. The code below is based on the [Relationships](#relationships) section further down.
+
+```python
+# models.py
+from django.db import models
+
+class Mymodel(models.Model):
+    title = models.CharField(max_length=100, blank=False)
+    content = models.TextField()
+    created = models.DateTimeField(auto_now_add=True)
+    owner = models.ForeignKey(
+        'auth.User', related_name='mymodels', on_delete=models.CASCADE)
+
+    class Meta:
+        ordering = ['-created']
+
+# serializers.py
+from django.contrib.auth.models import User
+from rest_framework import serializers
+from . import models
+
+class MymodelSerializer(serializers.HyperlinkedModelSerializer):
+    owner = serializers.ReadOnlyField(source='owner.username')
+
+    class Meta:
+        model = models.Mymodel
+        fields = ['url', 'id', 'title', 'content', 'owner']
+
+class UserSerializer(serializers.HyperlinkedModelSerializer):
+    mymodels = serializers.HyperlinkedRelatedField(
+        many=True, view_name='mymodel-detail', read_only=True)
+
+    class Meta:
+        model = User
+        fields = ['url', 'id', 'username', 'mymodels']
 ```
 
 For more in-depth information on serializers, read https://www.django-rest-framework.org/api-guide/serializers/

@@ -1,5 +1,5 @@
 from django.contrib.auth.models import User
-from rest_framework import generics, permissions, renderers, reverse
+from rest_framework import filters, generics, permissions, renderers, reverse
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
@@ -10,13 +10,13 @@ from . import serializers
 # Create your views here.
 
 
-@api_view(['GET'])
+@api_view(["GET"])
 def api_root(request, format=None):
     return Response({
-        'snippets': reverse.reverse(
-            'snippets:snippet-list', request=request, format=format),
-        'users': reverse.reverse(
-            'snippets:user-list', request=request, format=format),
+        "snippets": reverse.reverse(
+            "snippets:snippet-list", request=request, format=format),
+        "users": reverse.reverse(
+            "snippets:user-list", request=request, format=format),
     })
 
 
@@ -61,6 +61,9 @@ class UserList(generics.ListAPIView):
     """
     queryset = User.objects.all()
     serializer_class = serializers.UserSerializer
+    filter_backends = [filters.OrderingFilter]
+    ordering_fields = ["username"]
+    ordering = ["username"]
 
 
 class UserDetail(generics.RetrieveAPIView):
