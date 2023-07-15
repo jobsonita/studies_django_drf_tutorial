@@ -462,6 +462,69 @@ urlpatterns = [
 urlpatterns = format_suffix_patterns(urlpatterns)
 ```
 
+### Permissions
+
+We can add a simple access control to our views by setting the `permission_classes` field to a list of permissions matching our access rules and providing endpoints to login/logout into our api. We can also have our own permission classes by extending the `BasePermission` class from `rest_framework.permissions`:
+
+```python
+# permissions.py
+from rest_framework import permissions
+
+class IsOwnerOrReadOnly(permissions.BasePermission):
+    """
+    Custom permission to only allow owners of an object to edit it.
+    """
+
+    def has_object_permission(self, request, view, obj):
+        # Read permissions are allowed to any request,
+        # so we'll always allow GET, HEAD or OPTIONS requests.
+        if request.method in permissions.SAFE_METHODS:
+            return True
+
+        # Write permissions are only allowed to the owner of the object.
+        return obj.owner == request.user
+
+# views.py
+from django.contrib.auth.models import User
+from rest_framework import generics, permissions
+from . import models
+from . import permissions as myapp_permissions
+from . import serializers
+
+class MymodelList(generics.ListCreateAPIView):
+    queryset = models.Mymodel.objects.all()
+    serializer_class = serializers.MymodelSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
+
+class MymodelDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = models.Mymodel.objects.all()
+    serializer_class = serializers.MymodelSerializer
+    permission_classes = [
+        permissions.IsAuthenticatedOrReadOnly,
+        myapp_permissions.IsOwnerOrReadOnly]
+...
+
+# urls.py
+from django.urls import path, include
+from rest_framework.urlpatterns import format_suffix_patterns
+from . import views
+
+urlpatterns = [
+    path('mymodels/', views.MymodelList.as_view()),
+    path('mymodels/<int:pk>/', views.MymodelDetail.as_view()),
+    path('users/', views.UserList.as_view()),
+    path('users/<int:pk>/', views.UserDetail.as_view()),
+]
+
+urlpatterns = format_suffix_patterns(urlpatterns)
+urlpatterns += [
+    path('api-auth/', include('rest_framework.urls')),
+]
+```
+
 ## Common problems
 
 ### DRF generates localhost hyperlinks instead of Codespace ones
