@@ -145,7 +145,7 @@ urlpatterns = [
 ]
 ```
 
-### Requests, Responses, status codes, decorators
+#### Requests, Responses, status codes, decorators
 
 DRF introduces a `Request` object that extends from regular `HttpRequest` and has a `request.data` attribute with extended functionality over `request.POST`.
 
@@ -310,7 +310,7 @@ urlpatterns = [
 urlpatterns = format_suffix_patterns(urlpatterns)
 ```
 
-### Using Mixins
+#### Using Mixins
 
 In general, the usual operations (list + CRUD: create, retrieve, update, delete) are pretty similar for any model-backed API views we create. DRF provides mixins that implement those operations for us, so all we need to do is call them on each http method we want to implement:
 
@@ -353,6 +353,33 @@ class MymodelDetail(
 
     def delete(self, request, *args, **kwargs):
         return self.destroy(request, *args, **kwargs)
+
+# urls.py: NO CHANGE
+```
+
+#### Generic class-based views
+
+DRF provides already mixed-in generic views to reduce our code even more:
+
+```python
+# views.py
+from rest_framework import generics
+
+from . import models, serializers
+
+class MymodelList(generics.ListCreateAPIView):
+    """
+    List all mymodels, or create a new mymodel.
+    """
+    queryset = models.Mymodel.objects.all()
+    serializer_class = serializers.MymodelSerializer
+
+class MymodelDetail(generics.RetrieveUpdateDestroyAPIView):
+    """
+    Retrieve, update or delete a mymodel.
+    """
+    queryset = models.Mymodel.objects.all()
+    serializer_class = serializers.MymodelSerializer
 
 # urls.py: NO CHANGE
 ```
