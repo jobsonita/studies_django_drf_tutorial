@@ -8,4 +8,6 @@ def proj_root(request, format=None):
     return Response({
         "quickstart": reverse(
             "quickstart:api-root", request=request, format=format),
+        "snippets": reverse(
+            "snippets:api-root", request=request, format=format),
     })
