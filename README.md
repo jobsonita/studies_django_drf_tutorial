@@ -91,8 +91,7 @@ In this tutorial, we see a gradual evolution from regular Django views to DRF on
 from django.http import HttpResponse, JsonResponse
 from rest_framework.parsers import JSONParser
 
-from . import models
-from . import serializers
+from . import models, serializers
 
 def mymodel_list(request):
     """
@@ -166,8 +165,7 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from . import models
-from . import serializers
+from . import models, serializers
 
 @api_view(['GET', 'POST'])
 def mymodel_list(request):
@@ -253,8 +251,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from . import models
-from . import serializers
+from . import models, serializers
 
 class MymodelList(APIView):
     """
@@ -311,6 +308,53 @@ urlpatterns = [
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)
+```
+
+### Using Mixins
+
+In general, the usual operations (list + CRUD: create, retrieve, update, delete) are pretty similar for any model-backed API views we create. DRF provides mixins that implement those operations for us, so all we need to do is call them on each http method we want to implement:
+
+```python
+# views.py
+from rest_framework import mixins, generics
+
+from . import models, serializers
+
+class MymodelList(
+    mixins.ListModelMixin, mixins.CreateModelMixin, generics.GenericAPIView):
+    """
+    List all mymodels, or create a new mymodel.
+    """
+    queryset = models.Mymodel.objects.all()
+    serializer_class = serializers.MymodelSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+    
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)
+
+class MymodelDetail(
+    mixins.RetrieveModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.DestroyModelMixin,
+    generics.GenericAPIView):
+    """
+    Retrieve, update or delete a mymodel.
+    """
+    queryset = models.Mymodel.objects.all()
+    serializer_class = serializers.MymodelSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
+
+    def put(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
+
+    def delete(self, request, *args, **kwargs):
+        return self.destroy(request, *args, **kwargs)
+
+# urls.py: NO CHANGE
 ```
 
 ## Common problems
