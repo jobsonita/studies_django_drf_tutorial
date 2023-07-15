@@ -52,6 +52,34 @@ class MymodelSerializer(serializers.Serializer):
         return instance
 ```
 
+#### ModelSerializers
+
+We can greatly simplify our work by extending from the ModelSerializer which takes the base model and automatically configures serialization and deserialization. Our work is reduced to indicating which fields should be presented by that serializer:
+
+```python
+# models.py
+from django.db import models
+
+class Mymodel(models.Model):
+    title = models.CharField(max_length=100, blank=False)
+    content = models.TextField()
+    created = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created']
+
+# serializers.py
+from rest_framework import serializers
+from . import models
+
+class MymodelSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Mymodel
+        fields = ['id', 'title', 'content']
+```
+
+For more in-depth information on serializers, read https://www.django-rest-framework.org/api-guide/serializers/
+
 ## Common problems
 
 ### DRF generates localhost hyperlinks instead of Codespace ones
