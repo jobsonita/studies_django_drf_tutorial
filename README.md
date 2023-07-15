@@ -80,6 +80,72 @@ class MymodelSerializer(serializers.ModelSerializer):
 
 For more in-depth information on serializers, read https://www.django-rest-framework.org/api-guide/serializers/
 
+### Views
+
+In this tutorial, we see a gradual evolution from regular Django views to DRF ones.
+
+#### Regular Django views
+
+```python
+# views.py
+from django.http import HttpResponse, JsonResponse
+from rest_framework.parsers import JSONParser
+
+from . import models
+from . import serializers
+
+def mymodel_list(request):
+    """
+    List all mymodels, or create a new mymodel.
+    """
+    if request.method == 'GET':
+        instances = models.Mymodel.objects.all()
+        serializer = serializers.MymodelSerializer(instances, many=True)
+        return JsonResponse(serializer.data, safe=False)
+
+    elif request.method == 'POST':
+        data = JSONParser().parse(request)
+        serializer = serializers.MymodelSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return JsonResponse(serializer.data, status=201)
+        return JsonResponse(serializer.errors, status=400)
+
+def mymodel_detail(request, pk):
+    """
+    Retrieve, update or delete a mymodel.
+    """
+    try:
+        instance = models.Mymodel.objects.get(pk=pk)
+    except models.Mymodel.DoesNotExist:
+        return HttpResponse(status=404)
+
+    if request.method == 'GET':
+        serializer = serializers.MymodelSerializer(instance)
+        return JsonResponse(serializer.data)
+
+    elif request.method == 'PUT':
+        data = JSONParser().parse(request)
+        serializer = serializers.MymodelSerializer(instance, data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return JsonResponse(serializer.data)
+        return JsonResponse(serializer.errors, status=400)
+
+    elif request.method == 'DELETE':
+        instance.delete()
+        return HttpResponse(status=204)
+
+# urls.py
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path('mymodels/', views.mymodel_list),
+    path('mymodels/<int:pk>/', views.mymodel_detail),
+]
+```
+
 ## Common problems
 
 ### DRF generates localhost hyperlinks instead of Codespace ones
