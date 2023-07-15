@@ -5,13 +5,11 @@ Django Rest Framework (DRF) tutorials
 Quickstart: https://www.django-rest-framework.org/tutorial/quickstart/  
 Snippets: https://www.django-rest-framework.org/tutorial/1-serialization/
 
-## Concepts
+## Django Rest Framework (DRF) Concepts
 
 For Django configuration, project installation and other prerequisite knowledge, refer to https://github.com/jobsonita/studies_django_w3tutorial
 
-### Django Rest Framework (DRF)
-
-#### Serializers
+### Serializers
 
 [Serializers](https://www.django-rest-framework.org/api-guide/serializers/) do the job of presenting our models in the right way to our renderers and validating received data so that it matches our models. It can restrict which fields are shown, and also add more rules to be checked before accepting the received data.
 
@@ -52,7 +50,7 @@ class MymodelSerializer(serializers.Serializer):
         return instance
 ```
 
-##### ModelSerializers
+#### ModelSerializers
 
 We can greatly simplify our work by extending from the ModelSerializer which takes the base model and automatically configures serialization and deserialization. Our work is reduced to indicating which fields should be presented by that serializer:
 
@@ -80,11 +78,11 @@ class MymodelSerializer(serializers.ModelSerializer):
 
 For more in-depth information on serializers, read https://www.django-rest-framework.org/api-guide/serializers/
 
-#### Views
+### Views
 
 In this tutorial, we see a gradual evolution from regular Django views to DRF ones.
 
-##### Regular Django views
+#### Regular Django views
 
 ```python
 # views.py
@@ -145,7 +143,7 @@ urlpatterns = [
 ]
 ```
 
-##### Requests, Responses, status codes, decorators
+#### Requests, Responses, status codes, decorators
 
 DRF introduces a `Request` object that extends from regular `HttpRequest` and has a `request.data` attribute with extended functionality over `request.POST`.
 
@@ -157,7 +155,7 @@ Lastly, it introduces an `@api_view` decorator for function based views and an `
 
 When we put all above together, we get the next section:
 
-##### DRF "regular" views
+#### DRF "regular" views
 
 ```python
 # views.py
@@ -212,7 +210,7 @@ def mymodel_detail(request, pk):
 # urls.py: NO CHANGE
 ```
 
-##### Accepting format suffix in our URLs
+#### Accepting format suffix in our URLs
 
 We can allow format suffixes such as the `.json` part in `https://example.com/api/items/4.json` by using the `format_suffix_patterns` function of `rest_framework.urlpatterns` to transform our urlpatterns:
 
@@ -242,7 +240,7 @@ def mymodel_list(request, format=None):
 def mymodel_detail(request, pk, format=None):
 ```
 
-##### Class-based Views
+#### Class-based Views
 
 ```python
 # views.py
@@ -310,7 +308,7 @@ urlpatterns = [
 urlpatterns = format_suffix_patterns(urlpatterns)
 ```
 
-##### Using Mixins
+#### Using Mixins
 
 In general, the usual operations (list + CRUD: create, retrieve, update, delete) are pretty similar for any model-backed API views we create. DRF provides mixins that implement those operations for us, so all we need to do is call them on each http method we want to implement:
 
@@ -357,7 +355,7 @@ class MymodelDetail(
 # urls.py: NO CHANGE
 ```
 
-##### Generic class-based views
+#### Generic class-based views
 
 DRF provides already mixed-in generic views to reduce our code even more:
 
@@ -382,6 +380,86 @@ class MymodelDetail(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = serializers.MymodelSerializer
 
 # urls.py: NO CHANGE
+```
+
+### Relationships
+
+Example of associating a model to the `auth.User` model (and back through the `related_name` field).
+
+```python
+# models.py
+from django.db import models
+
+class Mymodel(models.Model):
+    title = models.CharField(max_length=100, blank=False)
+    content = models.TextField()
+    created = models.DateTimeField(auto_now_add=True)
+    owner = models.ForeignKey(
+        'auth.User', related_name='mymodels', on_delete=models.CASCADE)
+
+    class Meta:
+        ordering = ['-created']
+
+# serializers.py
+from django.contrib.auth.models import User
+from rest_framework import serializers
+from . import models
+
+class MymodelSerializer(serializers.ModelSerializer):
+    owner = serializers.ReadOnlyField(source='owner.username')
+
+    class Meta:
+        model = models.Mymodel
+        fields = ['id', 'title', 'content', 'owner']
+
+class UserSerializer(serializers.ModelSerializer):
+    mymodels = serializers.PrimaryKeyRelatedField(
+        many=True, queryset=Snippet.objects.all())
+
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'mymodels']
+
+# views.py
+from django.contrib.auth.models import User
+from rest_framework import generics
+
+from . import models, serializers
+
+class MymodelList(generics.ListCreateAPIView):
+    queryset = models.Mymodel.objects.all()
+    serializer_class = serializers.MymodelSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
+
+class MymodelDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = models.Mymodel.objects.all()
+    serializer_class = serializers.MymodelSerializer
+
+
+class UserList(generics.ListAPIView):
+    queryset = User.objects.all()
+    serializer_class = serializers.UserSerializer
+
+
+class UserDetail(generics.RetrieveAPIView):
+    queryset = User.objects.all()
+    serializer_class = serializers.UserSerializer
+
+# urls.py
+from django.urls import path
+from rest_framework.urlpatterns import format_suffix_patterns
+from . import views
+
+urlpatterns = [
+    path('mymodels/', views.MymodelList.as_view()),
+    path('mymodels/<int:pk>/', views.MymodelDetail.as_view()),
+    path('users/', views.UserList.as_view()),
+    path('users/<int:pk>/', views.UserDetail.as_view()),
+]
+
+urlpatterns = format_suffix_patterns(urlpatterns)
 ```
 
 ## Common problems
