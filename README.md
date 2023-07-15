@@ -146,6 +146,74 @@ urlpatterns = [
 ]
 ```
 
+### Requests, Responses, status codes, decorators
+
+DRF introduces a `Request` object that extends from regular `HttpRequest` and has a `request.data` attribute with extended functionality over `request.POST`.
+
+It also introduces a `Response` object, of type `TemplateResponse`, that automatically handles content negotiation for us.
+
+It also offers a `status` module with user friendly status code literals, such as `HTTP_400_BAD_REQUEST`.
+
+Lastly, it introduces an `@api_view` decorator for function based views and an `APIView` base class for class-based views, which make sure we receive Request objects and return Response objects, and handling `405 Method Not Allowed` and `ParseError` exceptions for us.
+
+When we put all above together, we get the next section:
+
+### DRF "regular" views
+
+```python
+# views.py
+from rest_framework import status
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+
+from . import models
+from . import serializers
+
+@api_view(['GET', 'POST'])
+def mymodel_list(request):
+    """
+    List all mymodels, or create a new mymodel.
+    """
+    if request.method == 'GET':
+        instances = models.Mymodel.objects.all()
+        serializer = serializers.MymodelSerializer(instances, many=True)
+        return Response(serializer.data)
+
+    elif request.method == 'POST':
+        serializer = serializers.MymodelSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET', 'PUT', 'DELETE'])
+def mymodel_detail(request, pk):
+    """
+    Retrieve, update or delete a mymodel.
+    """
+    try:
+        instance = models.Mymodel.objects.get(pk=pk)
+    except models.Mymodel.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'GET':
+        serializer = serializers.MymodelSerializer(instance)
+        return Response(serializer.data)
+
+    elif request.method == 'PUT':
+        serializer = serializers.MymodelSerializer(instance, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    elif request.method == 'DELETE':
+        instance.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+# urls.py: NO CHANGE
+```
+
 ## Common problems
 
 ### DRF generates localhost hyperlinks instead of Codespace ones
