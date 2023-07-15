@@ -214,6 +214,36 @@ def mymodel_detail(request, pk):
 # urls.py: NO CHANGE
 ```
 
+### Accepting format suffix in our URLs
+
+We can allow format suffixes such as the `.json` part in `https://example.com/api/items/4.json` by using the `format_suffix_patterns` function of `rest_framework.urlpatterns` to transform our urlpatterns:
+
+```python
+# urls.py
+from django.urls import path
+from rest_framework.urlpatterns import format_suffix_patterns
+from . import views
+
+urlpatterns = [
+    path('mymodels/', views.mymodel_list),
+    path('mymodels/<int:pk>/', views.mymodel_detail),
+]
+
+urlpatterns = format_suffix_patterns(urlpatterns)
+```
+
+In that case, we also need to add a `format` argument to our views:
+
+```python
+
+@api_view(['GET', 'POST'])
+def mymodel_list(request, format=None):
+...
+
+@api_view(['GET', 'PUT', 'DELETE'])
+def mymodel_detail(request, pk, format=None):
+```
+
 ## Common problems
 
 ### DRF generates localhost hyperlinks instead of Codespace ones
