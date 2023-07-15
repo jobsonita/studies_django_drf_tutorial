@@ -35,6 +35,7 @@ DEBUG = env("DEBUG")
 if DEBUG:
     ALLOWED_HOSTS = ["*"]
     USE_X_FORWARDED_HOST = True
+    CSRF_TRUSTED_ORIGINS = ["https://*.preview.app.github.dev"]
 else:
     ALLOWED_HOSTS = []
 
@@ -113,6 +114,9 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+if DEBUG:
+    AUTH_PASSWORD_VALIDATORS = []
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
@@ -140,6 +144,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # Django Rest Framework configuration
 
 REST_FRAMEWORK = {
+    "DEFAULT_VERSIONING_CLASS": "rest_framework.versioning.NamespaceVersioning",
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 10
 }

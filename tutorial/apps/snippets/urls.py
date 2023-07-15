@@ -1,8 +1,9 @@
 from django.urls import path
 
-from . import views as snippets_views
+from . import views
 
+app_name = "snippets"
 urlpatterns = [
-    path('snippets/', snippets_views.snippet_list),
-    path('snippets/<int:pk>/', snippets_views.snippet_detail),
+    path("snippets/", views.snippet_list),
+    path("snippets/<int:pk>/", views.snippet_detail),
 ]
